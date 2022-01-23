@@ -5,18 +5,19 @@ cwSiz = len(cw);
 
 # Оценки по критериям уложены по строкам
 aw = np.array([
-  [3, 1, 5, 4, 9], # Оценка альтернативы а1 по критериям с1-с5
-  [1, 2, 6, 9, 1], # Оценка альтернативы а2 по критериям с1-с5
-  [8, 5, 9, 7, 6], # ...
-  [4, 8, 7, 8, 5],
-  [5, 9, 2, 5, 3]
+  [3, 1, 8, 4, 5],
+  [1, 2, 5, 8, 9],
+  [5, 6, 9, 7, 2],
+  [4, 9, 7, 8, 5],
+  [9, 1, 6, 5, 3]
 ])
 
 def geo_mean(iterable):
     a = np.array(iterable)
     return a.prod()**(1.0/len(a))
 
-def eigenVec(m):
+
+def eigenVec(m, dst=None):
   rows, cols = m.shape
   rowsGeom = np.ones([cols])
   for i in range(rows):
@@ -35,16 +36,31 @@ def eigenVec(m):
   lmbda = np.sum(colsSum)
   if (lmbda > rows):
     raise "Wrong lambda"
+  if (not dst is None):
+    np.copyto(dst, rowsGeom)
   return rowsGeom
 
+def eigVecCalc(srcVec, dstVec):
+  srcSiz = len(srcVec)
+  result = np.ones([srcSiz, srcSiz])
+  for i in range(srcSiz):
+    for k in range(srcSiz):
+      result[i, k] = srcVec[i] / srcVec[k]
+  eigenVec(result, dstVec)
 
-# Считаем Относительные оценки критериев
-critRelEv = np.ones([cwSiz, cwSiz])
-for i in range(cwSiz):
-  for k in range(cwSiz):
-    result = cw[i] / cw[k]
-    critRelEv[i,k] = result
-critEig = eigenVec(critRelEv)
-print(critEig)
 
+
+
+eigVectors = np.zeros([cwSiz + 1, cwSiz]);
+
+# Нормированный собственный вектор оценки критериев
+eigVecCalc(cw, eigVectors[0])
+
+# Заполняем нормирпованные собственные вектора оценок альтернатив
+awRows, awCols = np.shape(aw)
+for i in range(awRows):
+  eigVecCalc(aw[i], eigVectors[i + 1])
+
+
+print(eigVectors)
 
