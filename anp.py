@@ -49,18 +49,24 @@ def eigVecCalc(srcVec, dstVec):
   eigenVec(result, dstVec)
 
 
-
-
-eigVectors = np.zeros([cwSiz + 1, cwSiz]);
+# normVectors = np.zeros([cwSiz + 1, cwSiz])
+eigNormVectors = np.zeros([cwSiz + 1, cwSiz]);
 
 # Нормированный собственный вектор оценки критериев
-eigVecCalc(cw, eigVectors[0])
+eigVecCalc(cw, eigNormVectors[0])
 
 # Заполняем нормирпованные собственные вектора оценок альтернатив
 awRows, awCols = np.shape(aw)
 for i in range(awRows):
-  eigVecCalc(aw[i], eigVectors[i + 1])
+  eigVecCalc(aw[i], eigNormVectors[i + 1])
 
+ahpSolveVector = np.zeros([awCols])
+for i in range(awRows):
+  ahpSolveVector[i] = 0
+  for j in range(awCols):
+    ahpSolveVector[i] += eigNormVectors[0, j] * eigNormVectors[j+1, i]
+minimum = np.amin(ahpSolveVector)
+result = np.where(ahpSolveVector == minimum)
 
-print(eigVectors)
+print(result)
 
