@@ -38,7 +38,9 @@ def eigVecCalc(srcVec, dstVec):
   eigenVec(result, dstVec)
 
 
-def AHPSolve(normVectors, solveVector):
+def AHPSolve(cw, normVectors, solveVector):
+  # Нормированный собственный вектор оценки критериев
+  eigVecCalc(cw, eigNormVectors[0])
   awRows, awCols = np.shape(aw)
   # Заполняем нормирпованные собственные вектора оценок альтернатив
   for i in range(awRows):
@@ -72,11 +74,27 @@ awRows, awCols = np.shape(aw)
 eigNormVectors = np.zeros([awCols + 1, cwSiz])
 ahpSolveVector = np.zeros([awCols])
 
-# Нормированный собственный вектор оценки критериев
-eigVecCalc(cw, eigNormVectors[0])
+result1 = AHPSolve(cw, eigNormVectors, ahpSolveVector)
 
-result = AHPSolve(eigNormVectors, ahpSolveVector)
+# Матрица нормализации попарных сравнений альтернатив
+normPairMatrix = np.zeros([cwSiz, cwSiz, awCols * 2])
+
+normRows, normCols = np.shape(eigNormVectors)
+for i in range(normRows):
+  if i == 0:
+    continue
+  for j in range(normRows - 1):
+    for k in range(normRows - 1):
+      normPairMatrix[i - 1, k, j*2] = eigNormVectors[i, k] / (eigNormVectors[i, k] + eigNormVectors[i, j])
+      normPairMatrix[i - 1, k, (j*2+1)] = eigNormVectors[i, j] / (eigNormVectors[i, j] + eigNormVectors[i, k])
+
+ahpPlusSolveMatrix = np.zeros([cwSiz, awCols * 2])
+for i in range(cwSiz):
+  for j in range(awCols * 2):
+    for k in range(cwSiz): # позиция в столбце и счётчик матриц
+      ahpPlusSolveMatrix[i, j] += eigNormVectors[0, k] * normPairMatrix[k, i, j]
+
+print(ahpPlusSolveMatrix)
 
 
-print(result)
 
