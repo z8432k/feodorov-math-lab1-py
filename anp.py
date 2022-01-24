@@ -1,3 +1,4 @@
+from asyncio import AbstractEventLoopPolicy
 import numpy as np
 
 def geo_mean(iterable):
@@ -55,8 +56,6 @@ def AHPSolve(cw, normVectors, solveVector):
 
 
 
-
-
 cw = np.array([ 3, 7, 5, 1, 9 ])
 cwSiz = len(cw);
 
@@ -94,7 +93,17 @@ for i in range(cwSiz):
     for k in range(cwSiz): # позиция в столбце и счётчик матриц
       ahpPlusSolveMatrix[i, j] += eigNormVectors[0, k] * normPairMatrix[k, i, j]
 
-print(ahpPlusSolveMatrix)
+anpPlusSolveVector = np.zeros([cwSiz])
+for i in range(cwSiz):
+  for j in range(0, awCols * 2, 2):
+    anpPlusSolveVector[i] += ahpPlusSolveMatrix[i, j]
+anpPlusSoveSum = np.sum(anpPlusSolveVector)
+for i in range(cwSiz):
+  anpPlusSolveVector[i] = anpPlusSolveVector[i] / anpPlusSoveSum
+minimum = np.amin(anpPlusSolveVector)
+result = np.where(anpPlusSolveVector == minimum)
+
+print(result)
 
 
 
