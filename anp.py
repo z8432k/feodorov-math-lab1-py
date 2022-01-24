@@ -54,7 +54,41 @@ def AHPSolve(cw, normVectors, solveVector):
   return np.where(solveVector == minimum)
 
 
+def buildNormPairMatrix(normVectors, normPairMatrix):
+  normRows, normCols = np.shape(normVectors)
+  for i in range(normRows):
+    if i == 0:
+      continue
+    for j in range(normRows - 1):
+      for k in range(normRows - 1):
+        normPairMatrix[i - 1, k, j*2] = normVectors[i, k] / \
+            (normVectors[i, k] + normVectors[i, j])
+        normPairMatrix[i - 1, k, (j*2+1)] = normVectors[i, j] / \
+            (normVectors[i, j] + normVectors[i, k])
 
+
+def buildAHPPlusSolveMatrix(pairMatrix, normVectors, solveMatrix):
+  for i in range(cwSiz):
+    for j in range(awCols * 2):
+      for k in range(cwSiz):  # позиция в столбце и счётчик матриц
+        solveMatrix[i, j] += normVectors[0, k] * \
+            pairMatrix[k, i, j]
+
+
+def ahpPlusSolve(solveMatrix, solveVector):
+  sRows, sCols = np.shape(solveMatrix)
+  for i in range(sRows):
+    for j in range(0, sCols, 2):
+      solveVector[i] += solveMatrix[i, j]
+
+  solveSum = np.sum(solveVector)
+  for i in range(sRows):
+    solveVector[i] = solveVector[i] / solveSum
+  minimum = np.amin(solveVector)
+  result = np.where(solveVector == minimum)
+  return result
+
+# Решение задачи
 
 cw = np.array([ 3, 7, 5, 1, 9 ])
 cwSiz = len(cw);
@@ -72,38 +106,23 @@ awRows, awCols = np.shape(aw)
 
 eigNormVectors = np.zeros([awCols + 1, cwSiz])
 ahpSolveVector = np.zeros([awCols])
-
 result1 = AHPSolve(cw, eigNormVectors, ahpSolveVector)
+
 
 # Матрица нормализации попарных сравнений альтернатив
 normPairMatrix = np.zeros([cwSiz, cwSiz, awCols * 2])
+buildNormPairMatrix(eigNormVectors, normPairMatrix)
 
-normRows, normCols = np.shape(eigNormVectors)
-for i in range(normRows):
-  if i == 0:
-    continue
-  for j in range(normRows - 1):
-    for k in range(normRows - 1):
-      normPairMatrix[i - 1, k, j*2] = eigNormVectors[i, k] / (eigNormVectors[i, k] + eigNormVectors[i, j])
-      normPairMatrix[i - 1, k, (j*2+1)] = eigNormVectors[i, j] / (eigNormVectors[i, j] + eigNormVectors[i, k])
 
 ahpPlusSolveMatrix = np.zeros([cwSiz, awCols * 2])
-for i in range(cwSiz):
-  for j in range(awCols * 2):
-    for k in range(cwSiz): # позиция в столбце и счётчик матриц
-      ahpPlusSolveMatrix[i, j] += eigNormVectors[0, k] * normPairMatrix[k, i, j]
+buildAHPPlusSolveMatrix(normPairMatrix, eigNormVectors, ahpPlusSolveMatrix)
+
 
 anpPlusSolveVector = np.zeros([cwSiz])
-for i in range(cwSiz):
-  for j in range(0, awCols * 2, 2):
-    anpPlusSolveVector[i] += ahpPlusSolveMatrix[i, j]
-anpPlusSoveSum = np.sum(anpPlusSolveVector)
-for i in range(cwSiz):
-  anpPlusSolveVector[i] = anpPlusSolveVector[i] / anpPlusSoveSum
-minimum = np.amin(anpPlusSolveVector)
-result = np.where(anpPlusSolveVector == minimum)
+result2 = ahpPlusSolve(ahpPlusSolveMatrix, anpPlusSolveVector)
 
-print(result)
+print(result1)
+print(result2)
 
 
 
