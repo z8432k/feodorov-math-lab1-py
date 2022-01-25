@@ -1,4 +1,3 @@
-from asyncio import AbstractEventLoopPolicy
 import numpy as np
 
 def geo_mean(iterable):
